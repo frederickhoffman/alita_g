@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" width="600" alt="Alita-G Banner">
+  <img src="assets/first_banner.png" width="600" alt="Alita-G Banner">
 </p>
 
 # Alita-G: Self-Evolving Generative Agent for Agent Generation 🚀
