@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "alita_g": "./src/alita_g/graph.py:graph"
+  },
+  "env": ".env"
+}

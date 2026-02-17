@@ -1,0 +1,51 @@
+[project]
+name = "alita-g"
+version = "0.1.0"
+description = "Alita-G: Self-Evolving Generative Agent for Agent Generation"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "langgraph",
+    "langchain-openai",
+    "wandb",
+    "ruff",
+    "mypy",
+    "pytest",
+    "python-dotenv",
+    "tavily-python",
+    "mcp",
+    "numpy>=2.2.6",
+    "scikit-learn>=1.7.2",
+    "datasets>=4.5.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "PL", "W"]
+ignore = ["PLR0913"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "langgraph.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "langchain_openai.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "wandb.*"
+ignore_missing_imports = true
