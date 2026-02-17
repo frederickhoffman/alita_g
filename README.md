@@ -1,5 +1,7 @@
 # Alita-G: Self-Evolving Generative Agent for Agent Generation 🚀
 
+![Alita-G Banner](assets/banner.png)
+
 [![WandB](https://img.shields.io/badge/Weights_%26_Biases-Monitoring-orange)](https://wandb.ai/alita-g)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
