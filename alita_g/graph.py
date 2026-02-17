@@ -3,6 +3,7 @@ from typing import Annotated, Dict, List, Optional, Sequence, TypedDict
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
+from langgraph.graph.graph import CompiledGraph
 from langgraph.graph.message import add_messages
 
 from alita_g.mcp_box import MCPBox
@@ -28,6 +29,10 @@ class AlitaGAgent:
     def task_analyzer(self, state: AgentState) -> Dict:
         """Analyzes the task and retrieves relevant MCPs from the MCP Box."""
         last_message = state["messages"][-1].content
+        if not isinstance(last_message, str):
+            # Fallback if content is a list of blocks
+            last_message = str(last_message)
+
         # Dynamic retrieval based on paper's recommended threshold
         relevant_mcps = self.mcp_box.retrieve(last_message, threshold=0.7)
 
@@ -56,7 +61,7 @@ class AlitaGAgent:
         response = self.model.invoke(messages)
         return {"messages": [response]}
 
-    def build_graph(self):
+    def build_graph(self) -> CompiledGraph:
         """Compiles the LangGraph workflow."""
         workflow = StateGraph(AgentState)
 

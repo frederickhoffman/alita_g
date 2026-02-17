@@ -42,11 +42,16 @@ class MCPAbstractor:
 
         try:
             result = self.structured_model.invoke(prompt)
+            if result is None:
+                raise ValueError("Abstraction returned None")
+
+            # Explicit typing for mypy since structured_output can return Dict or Pydantic
+            typed_result: MCPToolSchema = result  # type: ignore
             return MCPItem(
-                name=result.name,
-                code=result.code,
-                description=result.description,
-                use_case=result.use_case,
+                name=typed_result.name,
+                code=typed_result.code,
+                description=typed_result.description,
+                use_case=typed_result.use_case,
             )
         except Exception as e:
             print(f"Error during abstraction: {e}")

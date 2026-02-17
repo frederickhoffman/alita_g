@@ -1,4 +1,5 @@
 import argparse
+from typing import Optional
 
 from datasets import load_dataset
 from dotenv import load_dotenv
@@ -8,7 +9,10 @@ from alita_g.monitoring import WandBMonitor
 
 load_dotenv()
 
-def run_eval(dataset_name: str, split: str, num_samples: int = None, pass_n: int = 1):
+
+def run_eval(
+    dataset_name: str, split: str, num_samples: Optional[int] = None, pass_n: int = 1
+) -> None:
     print(f"Running {dataset_name} evaluation on {split} set (pass@{pass_n})...")
 
     # Load dataset
@@ -35,8 +39,8 @@ def run_eval(dataset_name: str, split: str, num_samples: int = None, pass_n: int
             "split": split,
             "pass_n": pass_n,
             "model": "gpt-4o",
-            "threshold": 0.7
-        }
+            "threshold": 0.7,
+        },
     )
 
     agent = AlitaGAgent()
@@ -53,7 +57,7 @@ def run_eval(dataset_name: str, split: str, num_samples: int = None, pass_n: int
         question = row.get("question", row.get("Task", ""))
         ground_truth = row.get("Answer", row.get("Final answer", ""))
 
-        print(f"Task {i+1}/{len(samples)}: {question[:100]}...")
+        print(f"Task {i + 1}/{len(samples)}: {question[:100]}...")
 
         # Simple implementation of pass@n
         success = False
@@ -71,11 +75,9 @@ def run_eval(dataset_name: str, split: str, num_samples: int = None, pass_n: int
         total += 1
 
         # Log individual task performance
-        monitor.log_metrics({
-            "task_id": i,
-            "correct": success,
-            "cumulative_accuracy": correct / total
-        })
+        monitor.log_metrics(
+            {"task_id": i, "correct": success, "cumulative_accuracy": correct / total}
+        )
 
     final_accuracy = correct / total
     print(f"Final Accuracy: {final_accuracy:.2%}")
@@ -83,15 +85,14 @@ def run_eval(dataset_name: str, split: str, num_samples: int = None, pass_n: int
     monitor.log_metrics({"final_accuracy": final_accuracy})
     monitor.finish()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--dataset", type=str, default="GAIA", help="Dataset to evaluate (GAIA, PathVQA, HLE)"
     )
     parser.add_argument("--split", type=str, default="validation", help="Dataset split")
-    parser.add_argument(
-        "--samples", type=int, default=None, help="Number of samples to evaluate"
-    )
+    parser.add_argument("--samples", type=int, default=None, help="Number of samples to evaluate")
     parser.add_argument("--pass_n", type=int, default=1, help="N for pass@N")
 
     args = parser.parse_args()
