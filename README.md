@@ -1,4 +1,6 @@
-![Alita-G Banner](assets/banner.png)
+<p align="center">
+  <img src="assets/banner.png" width="600" alt="Alita-G Banner">
+</p>
 
 # Alita-G: Self-Evolving Generative Agent for Agent Generation 🚀
 
