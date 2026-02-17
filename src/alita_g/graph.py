@@ -1,4 +1,4 @@
-from typing import Annotated, Dict, List, Sequence, TypedDict
+from typing import Annotated, Dict, List, Optional, Sequence, TypedDict
 
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_openai import ChatOpenAI
@@ -14,45 +14,50 @@ class AgentState(TypedDict):
     selected_mcps: List[str]  # Names of selected MCPs
 
 
-def get_model(model_name: str = "claude-3-5-sonnet-20240620"):
-    # Using LangChain's ChatOpenAI but it can also be configured for Anthropic
-    # since API keys are available in .bashrc. The paper mentions Sonnet-4.
-    # We'll use GPT-4o as a strong default if Sonnet isn't directly available via ChatOpenAI wrapper
-    # unless we specifically use ChatAnthropic.
-    return ChatOpenAI(model=model_name)
-
-
 class AlitaGAgent:
-    def __init__(self, mcp_box_path: str = "mcp_box.json"):
-        self.mcp_box = MCPBox(mcp_box_path)
-        self.model = ChatOpenAI(model="gpt-4o") # Master agent model
+    def __init__(
+        self,
+        mcp_box: Optional[MCPBox] = None,
+        model: Optional[ChatOpenAI] = None,
+        mcp_box_path: str = "mcp_box.json",
+    ):
+        self.mcp_box = mcp_box or MCPBox(mcp_box_path)
+        self.model = model or ChatOpenAI(model="gpt-4o")
         self.mcp_box_path = mcp_box_path
 
     def task_analyzer(self, state: AgentState) -> Dict:
-        """Analyzes the task and retrieves relevant MCPs."""
+        """Analyzes the task and retrieves relevant MCPs from the MCP Box."""
         last_message = state["messages"][-1].content
+        # Dynamic retrieval based on paper's recommended threshold
         relevant_mcps = self.mcp_box.retrieve(last_message, threshold=0.7)
 
         mcp_names = [item.name for item in relevant_mcps]
-
-        # In a real implementation, we would dynamically load these MCPs as tools.
-        # For now, we'll just track them in the state.
         return {"selected_mcps": mcp_names}
 
     def reasoner(self, state: AgentState) -> Dict:
-        """Core reasoning node."""
+        """Core reasoning node that leverages selected MCP tools."""
         messages = state["messages"]
-        # Injected information about available MCPs
-        if state.get("selected_mcps"):
-            mcp_info = "\n".join([f"- {name}" for name in state["selected_mcps"]])
-            system_msg = f"You have access to the following specialized MCP tools:\n{mcp_info}"
-            if not any(isinstance(m, HumanMessage) and "specialized MCP tools" in m.content for m in messages):
+        selected_mcps = state.get("selected_mcps", [])
+
+        if selected_mcps:
+            mcp_info = "\n".join([f"- {name}" for name in selected_mcps])
+            system_msg = (
+                f"You have access to the following specialized MCP tools:\n{mcp_info}\n"
+                "Incorporate their logic into your reasoning to provide a precise answer."
+            )
+            # Avoid duplicate system messages
+            has_mcp_info = any(
+                isinstance(m, HumanMessage) and "specialized MCP tools" in m.content
+                for m in messages
+            )
+            if not has_mcp_info:
                 messages = [HumanMessage(content=system_msg)] + list(messages)
 
         response = self.model.invoke(messages)
         return {"messages": [response]}
 
     def build_graph(self):
+        """Compiles the LangGraph workflow."""
         workflow = StateGraph(AgentState)
 
         workflow.add_node("analyze", self.task_analyzer)
@@ -65,6 +70,6 @@ class AlitaGAgent:
         return workflow.compile()
 
 
-# Export the compiled graph for LangGraph CLI/Studio
+# Default instance for LangGraph CLI/Studio
 agent = AlitaGAgent()
 graph = agent.build_graph()

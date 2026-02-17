@@ -10,7 +10,7 @@ load_dotenv()
 
 def run_eval(dataset_name: str, split: str, num_samples: int = None, pass_n: int = 1):
     print(f"Running {dataset_name} evaluation on {split} set (pass@{pass_n})...")
-    
+
     # Load dataset
     try:
         if dataset_name.lower() == "gaia":

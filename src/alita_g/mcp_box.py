@@ -38,11 +38,15 @@ class MCPBox:
             json.dump([item.to_dict() for item in self.items], f, indent=2)
 
     def load(self) -> None:
+        """Loads MCP items from storage with error handling."""
         try:
             with open(self.storage_path, "r") as f:
                 data = json.load(f)
+                if not isinstance(data, list):
+                    raise ValueError("Incorrect format in MCP box storage")
                 self.items = [MCPItem(**item) for item in data]
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
+            print(f"Warning: Could not load MCPBox from {self.storage_path}: {e}")
             self.items = []
 
     def retrieve(
